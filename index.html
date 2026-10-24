@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f6fb">
+  <meta name="description" content="Explore plasma research as an interactive knowledge graph.">
+  <title>LTP Knowledge Graph</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23192335'/%3E%3Cpath d='M10 27L20 10L30 27Z' fill='none' stroke='%2334d399' stroke-width='3'/%3E%3C/svg%3E">
+
+  
+  <script>
+    try { document.documentElement.dataset.theme = localStorage.getItem('kg-theme') === 'dark' ? 'dark' : 'light'; } catch (_) {}
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="data.js"></script>
+  <script defer src="core.js"></script>
+  <script defer src="ui.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./">
+      <!-- <span class="brand-mark" aria-hidden="true">⌘</span> -->
+      <span>Low Temperature Plasma Knowledge Graph
+      <!-- <small>KNOWLEDGE GRAPH</small> -->
+    </span></a>
+    <!-- <span class="dataset-badge"><i></i><span id="dataset-label">Research collection</span></span> -->
+    <div class="header-actions">
+      <button id="restore" hidden>Restore collection</button>
+     
+      <button id="import">Import JSON / CSV</button>
+      <input id="file-input" type="file" accept=".json,application/json,.csv,text/csv" multiple hidden><button id="export" class="primary">Export view</button>
+      <button id="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">☾ Dark mode</button>
+
+    </div>
+  </header>
+  <main class="workspace">
+    <aside id="filters" class="sidebar">
+      <div class="section-heading"><span>EXPLORE</span><button id="reset" class="text-button">Reset filters</button></div>
+      <label class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Find an entity…" aria-label="Search entities" autocomplete="off"><kbd>/</kbd></label>
+      <div id="search-results" class="search-results" aria-live="polite"></div>
+      <label class="field-label" for="source">SOURCE DOCUMENT</label><select id="source"><option value="">All documents</option></select>
+      <label class="field-label" for="predicate">RELATION TYPE</label><select id="predicate"><option value="">All relations</option></select>
+      <div class="section-heading type-heading"><span>ENTITY TYPES <span id="type-total" class="count"></span></span><div><button id="all-types" class="text-button">All</button><span class="divider"> / </span><button id="no-types" class="text-button">None</button></div></div>
+      <div id="type-list" class="type-list"></div>
+      <div class="sidebar-note"><span class="note-icon">↗</span><p>Follow the connections.<br><span>Select an entity to see its relations and source evidence.</span></p></div>
+    </aside>
+    <div id="resize-left" class="panel-resizer" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Resize filters panel" aria-controls="filters" title="Drag to resize filters. Arrow keys adjust width; double-click or Home resets."></div>
+    <section class="graph-panel" aria-label="Interactive knowledge graph">
+      <div class="graph-heading"><div><div class="eyebrow">CONNECTED KNOWLEDGE</div><h1>Discover the relationships</h1>
+    </div>
+      <div class="view-tabs" aria-label="View mode"><button id="graph-tab" class="active" aria-pressed="true">Graph</button><button id="table-tab" aria-pressed="false">Triples</button></div></div>
+      <div class="stats"><span><strong id="node-count">0</strong> entities</span><span><strong id="edge-count">0</strong> unique relations</span><span><strong id="paper-count">0</strong> documents</span><span class="record-stat"><strong id="row-count">0</strong> total relations</span></div>
+      <div id="canvas-wrap"><canvas id="graph" tabindex="0" aria-label="Knowledge graph. Drag to pan, scroll to zoom, click an entity to inspect. Use search or the Triples view for keyboard access."></canvas><div id="tooltip" hidden></div><div id="empty" hidden><strong>No connections in this view</strong><p>Try another paper, relation, or entity type.</p><button id="empty-reset">Reset filters</button></div></div>
+      <div id="table-wrap" hidden><table><thead><tr><th>Subject</th><th>Relation →</th><th>Object</th><th>Evidence</th></tr></thead><tbody id="triples-body"></tbody></table></div>
+      <div class="graph-footer"><span id="graph-help">Drag to explore · Scroll to zoom · Click to inspect</span><div class="graph-controls"><label><input type="checkbox" id="labels" checked> Labels</label><button id="pause" title="Pause layout" aria-label="Pause layout">Pause</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="zoom-in" aria-label="Zoom in">+</button><button id="fit">Fit view</button></div></div>
+    </section>
+    <div id="resize-right" class="panel-resizer" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Resize inspector panel" aria-controls="details" title="Drag to resize inspector. Arrow keys adjust width; double-click or Home resets."></div>
+    <aside id="details" class="details" aria-label="Entity details">
+      <div class="section-heading"><span>ENTITY INSPECTOR</span>
+        <button id="close-details" class="text-button" aria-label="Clear selection">×</button>
+      </div>
+      <div id="inspector"><div class="inspector-empty"><div class="orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+      <!-- <h2>Every entity has a story.</h2> -->
+      <p>Select a node in the graph or find an entity using search to explore its connections.</p><div class="tip">Node colours represent entity types.<br>Arrows point from subject to object.</div></div></div>
+    </aside>
+  </main>
+  <div id="notice" role="status" hidden></div>
+  <noscript>This knowledge graph needs JavaScript enabled in your browser.</noscript>
+</body>
+</html>
