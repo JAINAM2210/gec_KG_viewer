@@ -80,19 +80,19 @@
       components.push(ids.map(id => nodeMap.get(id)).sort((a, b) => b.degree - a.degree));
     }
     components.sort((a, b) => b.length - a.length);
-    const totalArea = components.reduce((sum, c) => sum + (Math.sqrt(c.length) * 120 + 110) ** 2, 0);
-    const rowWidth = Math.sqrt(totalArea * Math.max(.65, width / height));
-    let x = 0, y = 0, rowHeight = 0;
-    for (const component of components) {
-      const size = Math.sqrt(component.length) * 120 + 110;
-      if (x && x + size > rowWidth) { x = 0; y += rowHeight; rowHeight = 0; }
-      const cx = x + size / 2, cy = y + size / 2;
+    // Largest component in the middle; smaller ones spiral outwards around it, so the whole graph forms one disc.
+    // Each ring sits just outside the area already used by the components placed before it.
+    let usedArea = 0;
+    components.forEach((component, k) => {
+      const size = Math.sqrt(component.length) * 120 + 110, area = size * size;
+      const ring = k ? Math.sqrt((usedArea + area / 2) / Math.PI) : 0, turn = k * 2.3999632297;
+      const cx = Math.cos(turn) * ring, cy = Math.sin(turn) * ring;
+      usedArea += area;
       component.forEach((n, i) => {
         const angle = i * 2.3999632297, radius = 55 * Math.sqrt(i + .5);
         Object.assign(n, {x: cx + Math.cos(angle) * radius, y: cy + Math.sin(angle) * radius, vx: 0, vy: 0, cx, cy, r: 38 + Math.min(18, Math.sqrt(n.degree) * 2.5), pinned: false});
       });
-      x += size; rowHeight = Math.max(rowHeight, size);
-    }
+    });
     const pairs = new Map();
     for (const e of graph.edges) {
       const key = JSON.stringify([e.source, e.target].sort());
@@ -159,6 +159,7 @@
   }
   function drawNodeLabel(n, p, radius) {
     const preferredSize = Math.min(20 * uiScale, radius * .4), maxWidth = radius * 1.6;
+    if (preferredSize < 4) return; // Too small to read when zoomed far out.
     ctx.font = `600 ${preferredSize}px system-ui`;
     // Keep ordinary words intact where possible instead of splitting a short name.
     const widestWord = Math.max(...n.label.split(/\s+/).map(word => ctx.measureText(word).width), 1);
@@ -207,8 +208,10 @@
       while (t > .45 && Math.hypot(point(g,t).x - g.b.x, point(g,t).y - g.b.y) < targetRadius) t -= .02;
       const tip = point(g, t), before = point(g, Math.max(0, t - .04)), angle = Math.atan2(tip.y - before.y, tip.x - before.x), arrow = (highlight ? 8 : 5) * uiScale;
       ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.lineTo(tip.x - arrow * Math.cos(angle - .45), tip.y - arrow * Math.sin(angle - .45)); ctx.lineTo(tip.x - arrow * Math.cos(angle + .45), tip.y - arrow * Math.sin(angle + .45)); ctx.closePath(); ctx.fillStyle = highlight ? theme['edge-active'] : active ? theme['edge-dim'] : theme.arrow; ctx.fill();
-      if (highlight || ($('labels').checked && scale > .9)) {
-        const mid = point(g, .5), fontSize = 14 * uiScale, padding = 5 * uiScale;
+      // Scale predicates with zoom so they stay just below the smallest node label (about r * .28).
+      const edgeFontSize = Math.min(14 * uiScale, 14 * scale);
+      if ((highlight || ($('labels').checked && scale > .9)) && edgeFontSize >= 4) {
+        const mid = point(g, .5), fontSize = edgeFontSize, padding = fontSize * .35;
         ctx.save(); ctx.font = `500 ${fontSize}px system-ui`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         const w = ctx.measureText(e.predicate).width; ctx.fillStyle = theme['label-bg'];
         ctx.fillRect(mid.x - w / 2 - padding, mid.y - fontSize * .7, w + padding * 2, fontSize * 1.4);
